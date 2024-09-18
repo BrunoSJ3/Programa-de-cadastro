@@ -20,39 +20,78 @@ abstract class UserOptions
 
     protected static void cadastrarPessoas(Scanner scanner) {
         System.out.println("Cadastro de pessoa:");
+
+        String nome = lerNome(scanner);
+        String sobrenome = lerSobrenome(scanner);
+        char genero = lerGenero(scanner);
+        LocalDate dataNascimento = lerDataNascimento(scanner);
+        int idade = calcularIdade(dataNascimento);
+
+        UserConcrete user = new UserConcrete(idCounter++, nome, sobrenome, genero, dataNascimento, idade);
+        pessoas.add(user);
+        salvarPessoas(pessoas);
+        System.out.println("Pessoa cadastrada com sucesso!");
+    }
+
+    private static String lerNome(Scanner scanner) {
         System.out.print("Nome: ");
-        String nome = scanner.nextLine();
+        return scanner.nextLine();
+    }
 
+    private static String lerSobrenome(Scanner scanner) {
         System.out.print("Sobrenome: ");
-        String sobrenome = scanner.nextLine();
+        return scanner.nextLine();
+    }
 
-        System.out.print("Gênero (M/F): ");
-        char genero;
+    private static char lerGenero(Scanner scanner) {
         while (true) {
+            System.out.print("Gênero (M/F): ");
             String generoStr = scanner.next();
             if (generoStr.equalsIgnoreCase("M") || generoStr.equalsIgnoreCase("F")) {
-                genero = generoStr.charAt(0);
-                break;
+                scanner.nextLine(); // Consume newline left-over
+                return generoStr.charAt(0);
             } else {
-                System.out.print("Gênero inválido. Por favor, digite M ou F: ");
+                System.out.println("Gênero inválido. Por favor, digite M ou F.");
             }
         }
-        scanner.nextLine(); // Add this line to consume the newline character
-        System.out.print("Data de nascimento (dd/MM/yyyy): ");
-        String dataNascimento = scanner.nextLine();
+    }
 
-        try {
-            LocalDate dataNascimentoLocalDate = LocalDate.parse(dataNascimento,
-                    DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-            int idade = calcularIdade(dataNascimentoLocalDate);
-
-            UserConcrete user = new UserConcrete(idCounter++, nome, sobrenome, genero, dataNascimentoLocalDate, idade);
-            pessoas.add(user);
-            salvarPessoas();
-            System.out.println("Pessoa cadastrada com sucesso!");
-        } catch (DateTimeParseException e) {
-            System.out.println("Data de nascimento inválida. Por favor, digite no formato dd/MM/yyyy.");
+    private static LocalDate lerDataNascimento(Scanner scanner) {
+        while (true) {
+            System.out.print("Data de nascimento (dd/MM/yyyy): ");
+            String dataNascimentoStr = scanner.nextLine();
+            try {
+                return LocalDate.parse(dataNascimentoStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            } catch (DateTimeParseException e) {
+                System.out.println("Data de nascimento inválida. Por favor, digite no formato dd/MM/yyyy.");
+            }
         }
+    }
+
+    protected static void carregarPessoas() {
+        List<User> users = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] userData = line.split(";");
+                if (userData.length >= 6) { // Check if the array has at least 6 elements
+                    int id = Integer.parseInt(userData[0]);
+                    String nome = userData[1];
+                    String sobrenome = userData[2];
+                    char genero = userData[3].charAt(0);
+                    LocalDate dataNascimento = LocalDate.parse(userData[4], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    int idade = calcularIdade(dataNascimento);
+
+                    UserConcrete user = new UserConcrete(id, nome, sobrenome, genero, dataNascimento, idade);
+                    users.add(user);
+                } else {
+                    System.out.println("Erro ao carregar pessoa: linha inválida");
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Erro ao ler arquivo: " + e.getMessage());
+        }
+        pessoas = users;
     }
 
     protected static void listarPessoas() {
@@ -61,13 +100,9 @@ abstract class UserOptions
             while ((line = reader.readLine()) != null) {
                 String[] userData = line.split(";");
                 if (userData.length >= 6) { // Check if the array has at least 6 elements
-                    System.out.print("ID: " + userData[0] + " ");
-                    System.out.print("/Nome: " + userData[1] + " ");
-                    System.out.print("/Sobrenome: " + userData[2] + " ");
-                    System.out.print("/Gênero: " + userData[3] + " ");
-                    System.out.print("/Data de Nascimento: " + userData[4] + " ");
-                    System.out.print("/Idade: " + userData[5] + " ");
-                    System.out.println();
+                    System.out.println("ID: " + userData[0] + ", Nome: " + userData[1] + ", Sobrenome: " + userData[2]
+                            + ", Gênero: " + userData[3] + ", Data de nascimento: " + userData[4] + ", Idade: "
+                            + userData[5]);
                 } else {
                     System.out.println("Erro ao carregar pessoa: linha inválida");
                 }
@@ -105,63 +140,56 @@ abstract class UserOptions
         int id = scanner.nextInt();
         scanner.nextLine(); // Consume newline left-over
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
-            String line;
-            boolean found = false;
-            while ((line = reader.readLine()) != null) {
-                String[] userData = line.split(";");
-                if (Integer.parseInt(userData[0]) == id) {
-                    found = true;
-                    System.out.print("Novo nome: ");
-                    String novoNome = scanner.nextLine();
-                    System.out.print("Novo sobrenome: ");
-                    String novoSobrenome = scanner.nextLine();
-                    System.out.print("Novo gênero (M/F): ");
-                    char novoGenero;
-                    while (true) {
-                        String generoStr = scanner.next();
-                        if (generoStr.equalsIgnoreCase("M") || generoStr.equalsIgnoreCase("F")) {
-                            novoGenero = generoStr.charAt(0);
-                            break;
-                        } else {
-                            System.out.print("Gênero inválido. Por favor, digite M ou F: ");
-                        }
-                    }
-                    scanner.nextLine(); // Consume newline left-over
-                    System.out.print("Nova data de nascimento (dd/MM/yyyy): ");
-                    String novaDataNascimentoStr = scanner.nextLine();
-                    LocalDate novaDataNascimento = LocalDate.parse(novaDataNascimentoStr,
-                            DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                    int novaIdade = calcularIdade(novaDataNascimento);
+        int index = -1;
+        for (int i = 0; i < pessoas.size(); i++) {
+            if (pessoas.get(i).getId() == id) {
+                index = i;
+                break;
+            }
+        }
 
-                    // Update the user data
-                    userData[1] = novoNome;
-                    userData[2] = novoSobrenome;
-                    userData[3] = String.valueOf(novoGenero);
-                    userData[4] = novaDataNascimento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                    userData[5] = String.valueOf(novaIdade);
+        if (index != -1) {
+            User user = pessoas.get(index);
+            System.out.print("Novo nome: ");
+            String novoNome = scanner.nextLine();
+            System.out.print("Novo sobrenome: ");
+            String novoSobrenome = scanner.nextLine();
+            System.out.print("Novo gênero (M/F): ");
+            String generoStr = scanner.next();
+            char novoGenero = generoStr.charAt(0);
+            scanner.nextLine(); // Consume newline left-over
+            System.out.print("Nova data de nascimento (dd/MM/yyyy): ");
+            String novaDataNascimentoStr = scanner.nextLine();
+            LocalDate novaDataNascimento = LocalDate.parse(novaDataNascimentoStr,
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            int novaIdade = calcularIdade(novaDataNascimento);
 
-                    // Write the updated user data back to the file
-                    try (PrintWriter writer = new PrintWriter("users.txt", "UTF-8")) {
-                        writer.println(userData[0] + ";" + userData[1] + ";" + userData[2] + ";" + userData[3] + ";"
-                                + userData[4] + ";" + userData[5]);
-                        System.out.println("Usuário alterado com sucesso!");
-                    } catch (IOException e) {
-                        System.out.println("Erro ao gravar usuário: " + e.getMessage());
-                    }
-                    break;
+            // Update the user data
+            user.setNome(novoNome);
+            user.setSobrenome(novoSobrenome);
+            user.setGenero(novoGenero);
+            user.setDataNascimento(novaDataNascimento);
+            user.setIdade(novaIdade);
+
+            // Save the updated user data
+            try (PrintWriter writer = new PrintWriter("users.txt", "UTF-8")) {
+                for (User pessoa : pessoas) {
+                    writer.println(pessoa.getId() + ";" + pessoa.getNome() + ";" + pessoa.getSobrenome() + ";"
+                            + pessoa.getGenero() + ";"
+                            + pessoa.getDataNascimento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                            + ";" + pessoa.getIdade());
                 }
+                System.out.println("Usuário alterado com sucesso!");
+            } catch (IOException e) {
+                System.out.println("Erro ao salvar usuário: " + e.getMessage());
             }
-            if (!found) {
-                System.out.println("Usuário não encontrado.");
-            }
-        } catch (IOException e) {
-            System.out.println("Erro ao ler arquivo: " + e.getMessage());
+        } else {
+            System.out.println("Usuário não encontrado.");
         }
     }
 
     protected static void excluirPessoa(Scanner scanner) {
-        System.out.print("Digite o ID da pessoa a ser excluída: ");
+        System.out.print(" Digite o ID da pessoa a ser excluída: ");
         int id = scanner.nextInt();
         scanner.nextLine(); // Consume newline left-over
 
@@ -195,9 +223,12 @@ abstract class UserOptions
     }
 
     protected static void gravarDados() {
-        try (FileWriter writer = new FileWriter("dados.txt")) {
+        try (FileWriter writer = new FileWriter("users.txt")) {
             for (User pessoa : pessoas) {
-                writer.write(pessoa.toString() + "\n");
+                writer.write(pessoa.getId() + ";" + pessoa.getNome() + ";" + pessoa.getSobrenome() + ";"
+                        + pessoa.getGenero()
+                        + ";" + pessoa.getDataNascimento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ";"
+                        + pessoa.getIdade() + "\n");
             }
             System.out.println("Dados gravados com sucesso!");
         } catch (IOException e) {
@@ -206,30 +237,28 @@ abstract class UserOptions
     }
 
     protected static void carregarDados() {
-        Scanner scanner = new Scanner(System.in);
-
         System.out.println("Cadastro de pessoa:");
         System.out.print("Nome: ");
-        String nome = scanner.nextLine();
+        String nome = System.console().readLine();
 
         System.out.print("Sobrenome: ");
-        String sobrenome = scanner.nextLine();
+        String sobrenome = System.console().readLine();
 
         System.out.print("Gênero (M/F): ");
+        String generoStr = System.console().readLine();
         char genero;
         while (true) {
-            String generoStr = scanner.next();
             if (generoStr.equalsIgnoreCase("M") || generoStr.equalsIgnoreCase("F")) {
                 genero = generoStr.charAt(0);
                 break;
             } else {
                 System.out.print("Gênero inválido. Por favor, digite M ou F: ");
+                generoStr = System.console().readLine();
             }
         }
-        scanner.nextLine(); // Consume newline left-over
 
         System.out.print("Data de nascimento (dd/MM/yyyy): ");
-        String dataNascimentoStr = scanner.nextLine();
+        String dataNascimentoStr = System.console().readLine();
 
         try {
             LocalDate dataNascimento = LocalDate.parse(dataNascimentoStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
@@ -265,16 +294,15 @@ abstract class UserOptions
         }
     }
 
-    protected static void salvarPessoas() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("users.txt"))) {
-            for (User user : pessoas) {
-                writer.write(user.getId() + ";" + user.getNome() + ";" + user.getSobrenome() + ";" + user.getGenero()
+    protected static void salvarPessoas(List<User> users) {
+        try (PrintWriter writer = new PrintWriter("users.txt")) {
+            for (User user : users) {
+                writer.println(user.getId() + ";" + user.getNome() + ";" + user.getSobrenome() + ";" + user.getGenero()
                         + ";" + user.getDataNascimento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ";"
                         + user.getIdade());
-                writer.newLine();
             }
         } catch (IOException e) {
-            System.out.println("Erro ao salvar pessoas: " + e.getMessage());
+            System.out.println("Erro ao salvar pessoa: " + e.getMessage());
         }
     }
 

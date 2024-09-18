@@ -2,11 +2,9 @@ import java.util.Scanner;
 
 public class RegisterScreen extends UserOptions {
 
-    public static void main(String[] args)
-
+    public static void main(String[] args) 
+    
     {
-        carregarDados();
-
         Scanner scanner = new Scanner(System.in);
         System.out.println("Bem-vindo ao sistema de cadastro de pessoas!");
 
@@ -21,6 +19,7 @@ public class RegisterScreen extends UserOptions {
             System.out.println("g. Sair");
 
             String opcao = scanner.nextLine();
+            carregarPessoas();
 
             switch (opcao) {
                 case "a":
