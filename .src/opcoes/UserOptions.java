@@ -84,6 +84,9 @@ abstract class UserOptions
 
                     UserConcrete user = new UserConcrete(id, nome, sobrenome, genero, dataNascimento, idade);
                     users.add(user);
+                    if (id > idCounter) {
+                        idCounter = id;
+                    }
                 } else {
                     System.out.println("Erro ao carregar pessoa: linha inválida");
                 }
@@ -92,6 +95,7 @@ abstract class UserOptions
             System.out.println("Erro ao ler arquivo: " + e.getMessage());
         }
         pessoas = users;
+        idCounter++; // Increment the idCounter to get the next available ID
     }
 
     protected static void listarPessoas() {
