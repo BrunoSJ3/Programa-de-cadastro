@@ -63,9 +63,15 @@ abstract class UserOptions
             System.out.print("Data de nascimento (dd/MM/yyyy): ");
             String dataNascimentoStr = scanner.nextLine();
             try {
-                return LocalDate.parse(dataNascimentoStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                LocalDate dataNascimento = LocalDate.parse(dataNascimentoStr,
+                        DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                if (dataNascimento.isAfter(LocalDate.now())) {
+                    System.out.println("Erro: Data de nascimento inválida. Você não pode ter nascido no futuro!");
+                } else {
+                    return dataNascimento;
+                }
             } catch (DateTimeParseException e) {
-                System.out.println("Data de nascimento inválida. Por favor, digite no formato dd/MM/yyyy.");
+                System.out.println("Erro: Data de nascimento inválida. Por favor, digite no formato dd/MM/yyyy.");
             }
         }
     }
