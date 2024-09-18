@@ -4,12 +4,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 abstract class UserOptions
@@ -122,9 +124,11 @@ abstract class UserOptions
 
         try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
             String line;
+            boolean found = false;
             while ((line = reader.readLine()) != null) {
                 String[] userData = line.split(";");
                 if (userData[1].contains(searchQuery) || userData[2].contains(searchQuery)) {
+                    System.out.println("Aqui está o usuário: ");
                     System.out.println("ID: " + userData[0]);
                     System.out.println("Nome: " + userData[1]);
                     System.out.println("Sobrenome: " + userData[2]);
@@ -132,11 +136,18 @@ abstract class UserOptions
                     System.out.println("Data de Nascimento: " + userData[4]);
                     System.out.println("Idade: " + userData[5]);
                     System.out.println();
+                    found = true;
+                    break; // Sai do loop após encontrar o usuário
                 }
             }
+            if (!found) {
+                System.out.println("Usuário não encontrado ");
+            }
+
         } catch (IOException e) {
             System.out.println("Erro ao ler arquivo: " + e.getMessage());
         }
+
     }
 
     protected static void alterarPessoa(Scanner scanner) {
@@ -310,12 +321,15 @@ abstract class UserOptions
         }
     }
 
-    protected static int calcularIdade(LocalDate dataNascimento)
-
-    {
-        LocalDate dataAtual = LocalDate.now();
-        Period periodo = Period.between(dataNascimento, dataAtual);
-        return periodo.getYears();
+    protected static int calcularIdade(LocalDate dataNascimento) {
+        try {
+            LocalDate dataAtual = LocalDate.now();
+            Period periodo = Period.between(dataNascimento, dataAtual);
+            return periodo.getYears();
+        } catch (DateTimeException e) {
+            System.out.println("Erro: Data de nascimento inválida.");
+            return -1; // ou outro valor que indique um erro
+        }
     }
 
 }

@@ -5,11 +5,4 @@ public class UserConcrete extends User {
         super(id, nome, sobrenome, genero, dataNascimento, idade);
     }
 
-    public static void add(int i, String nome, String sobrenome, char genero, LocalDate dataNascimento, int idade) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("ACHO QUE FOI NÃO");
-    }
-
-
-
 }
